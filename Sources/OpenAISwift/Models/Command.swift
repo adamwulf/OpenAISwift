@@ -6,18 +6,27 @@ import Foundation
 
 class Command: Encodable {
     var prompt: String
+    var suffix: String?
     var model: String
     var maxTokens: Int
-    
-    init(prompt: String, model: String, maxTokens: Int) {
+    var temperature: Float
+    var user: String?
+
+    init(prompt: String, suffix: String?, model: String, maxTokens: Int, temperature: Float, user: String?) {
         self.prompt = prompt
+        self.suffix = suffix
         self.model = model
         self.maxTokens = maxTokens
+        self.temperature = temperature
+        self.user = user
     }
     
     enum CodingKeys: String, CodingKey {
         case prompt
+        case suffix
         case model
         case maxTokens = "max_tokens"
+        case temperature
+        case user
     }
 }
