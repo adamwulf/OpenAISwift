@@ -7,6 +7,7 @@ import Foundation
 enum Endpoint {
     case completions
     case edits
+    case imageGenerations
 }
 
 extension Endpoint {
@@ -16,19 +17,21 @@ extension Endpoint {
             return "/v1/completions"
         case .edits:
             return "/v1/edits"
+        case .imageGenerations:
+            return "/v1/images/generations"
         }
     }
     
     var method: String {
         switch self {
-        case .completions, .edits:
+        case .completions, .edits, .imageGenerations:
             return "POST"
         }
     }
     
     func baseURL() -> String {
         switch self {
-        case .completions, .edits:
+        case .completions, .edits, .imageGenerations:
             return "https://api.openai.com"
         }
     }

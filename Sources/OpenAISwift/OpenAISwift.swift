@@ -9,6 +9,17 @@ public enum OpenAIError: Error {
     case decodingError(error: Error)
 }
 
+public enum OpenAIImageSize: String {
+    case x256 = "256x256"
+    case x512 = "512x512"
+    case x1024 = "1024x1024"
+}
+
+public enum OpenAIImageResponesFormat: String {
+    case url
+    case b64JSON
+}
+
 public class OpenAISwift {
     fileprivate(set) var token: String?
 
@@ -18,6 +29,39 @@ public class OpenAISwift {
 }
 
 extension OpenAISwift {
+    /// Send an Image Generation to the OpenAI API
+    /// - Parameters:
+    ///   - prompt: A text description of the desired image(s). The maximum length is 1000 characters.
+    ///   - n: The number of images to generate. Must be between 1 and 10.
+    ///   - model: The AI Model to Use. Set to `OpenAIModelType.gpt3(.davinci)` by default which is the most capable model
+    ///   - maxTokens: The limit character for the returned response, defaults to 16 as per the API
+    ///   - completionHandler: Returns an OpenAI Data Model
+    public func sendImageGeneration(with prompt: String,
+                                    n: Int = 1,
+                                    size: OpenAIImageSize = .x256,
+                                    responseFormat: OpenAIImageResponesFormat = .url,
+                                    user: String? = nil,
+                                    completionHandler: @escaping (Result<OpenAIImageResponse, OpenAIError>) -> Void) {
+        assert(prompt.count < 1000, "prompt must be less than 1000 characters")
+        let endpoint = Endpoint.completions
+        let body = ImageCommand(prompt: prompt, n: n, size: size.rawValue, responseFormat: responseFormat.rawValue, user: user)
+        let request = prepareRequest(endpoint, body: body)
+
+        makeRequest(request: request) { result in
+            switch result {
+            case .success(let success):
+                do {
+                    let res = try JSONDecoder().decode(OpenAIImageResponse.self, from: success)
+                    completionHandler(.success(res))
+                } catch {
+                    completionHandler(.failure(.decodingError(error: error)))
+                }
+            case .failure(let failure):
+                completionHandler(.failure(.genericError(error: failure)))
+            }
+        }
+    }
+
     /// Send a Completion to the OpenAI API
     /// - Parameters:
     ///   - prompt: The Text Prompt
