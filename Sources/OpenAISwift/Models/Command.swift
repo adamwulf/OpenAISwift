@@ -10,14 +10,16 @@ class Command: Encodable {
     var model: String
     var maxTokens: Int
     var temperature: Float
+    var stop: [String]?
     var user: String?
 
-    init(prompt: String, suffix: String?, model: String, maxTokens: Int, temperature: Float, user: String?) {
+    init(prompt: String, suffix: String?, model: String, maxTokens: Int, temperature: Float, stop: [String]?, user: String?) {
         self.prompt = prompt
         self.suffix = suffix
         self.model = model
         self.maxTokens = maxTokens
         self.temperature = temperature
+        self.stop = stop
         self.user = user
     }
     
@@ -27,6 +29,7 @@ class Command: Encodable {
         case model
         case maxTokens = "max_tokens"
         case temperature
+        case stop
         case user
     }
 }

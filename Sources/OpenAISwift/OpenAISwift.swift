@@ -73,10 +73,11 @@ extension OpenAISwift {
                                model: OpenAIModelType = .gpt3(.davinci),
                                maxTokens: Int = 16,
                                temperature: Float = 1.0,
+                               stop: [String]? = nil,
                                user: String? = nil,
                                completionHandler: @escaping (Result<OpenAI, OpenAIError>) -> Void) {
         let endpoint = Endpoint.completions
-        let body = Command(prompt: prompt, suffix: suffix, model: model.modelName, maxTokens: maxTokens, temperature: temperature, user: user)
+        let body = Command(prompt: prompt, suffix: suffix, model: model.modelName, maxTokens: maxTokens, temperature: temperature, stop: stop, user: user)
         let request = prepareRequest(endpoint, body: body)
         
         makeRequest(request: request) { result in
