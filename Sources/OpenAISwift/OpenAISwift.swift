@@ -17,7 +17,7 @@ public enum OpenAIImageSize: String {
 
 public enum OpenAIImageResponesFormat: String {
     case url
-    case b64JSON
+    case b64JSON = "b64_json"
 }
 
 public class OpenAISwift {
@@ -43,7 +43,7 @@ extension OpenAISwift {
                                     user: String? = nil,
                                     completionHandler: @escaping (Result<OpenAIImageResponse, OpenAIError>) -> Void) {
         assert(prompt.count < 1000, "prompt must be less than 1000 characters")
-        let endpoint = Endpoint.completions
+        let endpoint = Endpoint.imageGenerations
         let body = ImageCommand(prompt: prompt, n: n, size: size.rawValue, responseFormat: responseFormat.rawValue, user: user)
         let request = prepareRequest(endpoint, body: body)
 
