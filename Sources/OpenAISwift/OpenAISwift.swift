@@ -7,6 +7,7 @@ import FoundationXML
 public enum OpenAIError: Error {
     case genericError(error: Error)
     case decodingError(error: Error)
+    case serverError(type: String, error: String)
 }
 
 public enum OpenAIImageSize: String {
@@ -87,7 +88,14 @@ extension OpenAISwift {
                     let res = try JSONDecoder().decode(OpenAI.self, from: success)
                     completionHandler(.success(res))
                 } catch {
-                    completionHandler(.failure(.decodingError(error: error)))
+                    if let json = try? JSONSerialization.jsonObject(with: success) as? [String: Any],
+                       let error = json["error"] as? [String: Any],
+                       let message = error["message"] as? String,
+                       let type = error["type"] as? String {
+                        completionHandler(.failure(.serverError(type: type, error: message)))
+                    } else {
+                        completionHandler(.failure(.decodingError(error: error)))
+                    }
                 }
             case .failure(let failure):
                 completionHandler(.failure(.genericError(error: failure)))
