@@ -85,24 +85,7 @@ extension OpenAISwift {
         makeRequest(request: request) { result in
             switch result {
             case .success(let success):
-                do {
-                    let res = try JSONDecoder().decode(OpenAI.self, from: success)
-                    completionHandler(.success(res))
-                } catch {
-                    if let json = try? JSONSerialization.jsonObject(with: success) as? [String: Any],
-                       let error = json["error"] as? [String: Any],
-                       let message = error["message"] as? String,
-                       let type = error["type"] as? String {
-                        if type == "invalid_request_error",
-                           message.contains("maximum context length") {
-                            completionHandler(.failure(.invalidContentLength(error: message)))
-                        } else {
-                            completionHandler(.failure(.serverError(type: type, error: message)))
-                        }
-                    } else {
-                        completionHandler(.failure(.decodingError(error: error)))
-                    }
-                }
+                self.handleResponse(success, completionHandler: completionHandler)
             case .failure(let failure):
                 completionHandler(.failure(.genericError(error: failure)))
             }
@@ -123,12 +106,7 @@ extension OpenAISwift {
         makeRequest(request: request) { result in
             switch result {
             case .success(let success):
-                do {
-                    let res = try JSONDecoder().decode(OpenAI.self, from: success)
-                    completionHandler(.success(res))
-                } catch {
-                    completionHandler(.failure(.decodingError(error: error)))
-                }
+                self.handleResponse(success, completionHandler: completionHandler)
             case .failure(let failure):
                 completionHandler(.failure(.genericError(error: failure)))
             }
@@ -166,6 +144,27 @@ extension OpenAISwift {
         }
         
         return request
+    }
+
+    private func handleResponse(_ success: Data, completionHandler: @escaping (Result<OpenAI, OpenAIError>) -> Void) {
+        do {
+            let res = try JSONDecoder().decode(OpenAI.self, from: success)
+            completionHandler(.success(res))
+        } catch {
+            if let json = try? JSONSerialization.jsonObject(with: success) as? [String: Any],
+               let error = json["error"] as? [String: Any],
+               let message = error["message"] as? String,
+               let type = error["type"] as? String {
+                if type == "invalid_request_error",
+                   message.contains("maximum context length") {
+                    completionHandler(.failure(.invalidContentLength(error: message)))
+                } else {
+                    completionHandler(.failure(.serverError(type: type, error: message)))
+                }
+            } else {
+                completionHandler(.failure(.decodingError(error: error)))
+            }
+        }
     }
 }
 
