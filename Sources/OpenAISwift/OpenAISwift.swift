@@ -8,6 +8,7 @@ public enum OpenAIError: Error {
     case genericError(error: Error)
     case decodingError(error: Error)
     case serverError(type: String, error: String)
+    case invalidContentLength(error: String)
 }
 
 public enum OpenAIImageSize: String {
@@ -92,7 +93,12 @@ extension OpenAISwift {
                        let error = json["error"] as? [String: Any],
                        let message = error["message"] as? String,
                        let type = error["type"] as? String {
-                        completionHandler(.failure(.serverError(type: type, error: message)))
+                        if type == "invalid_request_error",
+                           message.contains("maximum context length") {
+                            completionHandler(.failure(.invalidContentLength(error: message)))
+                        } else {
+                            completionHandler(.failure(.serverError(type: type, error: message)))
+                        }
                     } else {
                         completionHandler(.failure(.decodingError(error: error)))
                     }
