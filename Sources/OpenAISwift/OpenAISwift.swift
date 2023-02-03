@@ -112,7 +112,28 @@ extension OpenAISwift {
             }
         }
     }
-    
+
+    /// Send a Edit request to the OpenAI API
+    /// - Parameters:
+    ///   - instruction: The Instruction For Example: "Fix the spelling mistake"
+    ///   - model: The Model to use, the only support model is `text-davinci-edit-001`
+    ///   - input: The Input For Example "My nam is Adam"
+    ///   - completionHandler: Returns an OpenAI Data Model
+    public func sendEmbedding(for input: String, model: OpenAIModelType = .gpt3(.davinci), completionHandler: @escaping (Result<OpenAI, OpenAIError>) -> Void) {
+        let endpoint = Endpoint.edits
+        let body = Embedding(input: input, model: model.modelName)
+        let request = prepareRequest(endpoint, body: body)
+
+        makeRequest(request: request) { result in
+            switch result {
+            case .success(let success):
+                self.handleResponse(success, completionHandler: completionHandler)
+            case .failure(let failure):
+                completionHandler(.failure(.genericError(error: failure)))
+            }
+        }
+    }
+
     private func makeRequest(request: URLRequest, completionHandler: @escaping (Result<Data, Error>) -> Void) {
         let session = URLSession.shared
         let task = session.dataTask(with: request) { (data, response, error) in

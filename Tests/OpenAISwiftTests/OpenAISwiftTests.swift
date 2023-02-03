@@ -15,7 +15,7 @@ final class OpenAISwiftTests: XCTestCase {
                 case .success(let foo) = result,
                 let choice = foo.choices.first
             else {
-                XCTFail()
+                XCTFail("\(result)")
                 return
             }
             XCTAssert(choice.text.lowercased().contains("hi"))
@@ -33,7 +33,7 @@ final class OpenAISwiftTests: XCTestCase {
                 case .success(let foo) = result,
                 let choice = foo.choices.first
             else {
-                XCTFail()
+                XCTFail("\(result)")
                 return
             }
             XCTAssertFalse(choice.text.lowercased().contains("hi"))
@@ -52,7 +52,7 @@ final class OpenAISwiftTests: XCTestCase {
                 case .success(let foo) = result,
                 let choice = foo.choices.first
             else {
-                XCTFail()
+                XCTFail("\(result)")
                 return
             }
             XCTAssert(choice.text.lowercased().contains("hi"))
@@ -70,7 +70,7 @@ final class OpenAISwiftTests: XCTestCase {
                 case .success(let response) = result,
                 let image = response.data.first
             else {
-                XCTFail()
+                XCTFail("\(result)")
                 return
             }
             XCTAssertNotNil(image.url)
@@ -89,7 +89,7 @@ final class OpenAISwiftTests: XCTestCase {
                 case .success(let response) = result,
                 let image = response.data.first
             else {
-                XCTFail()
+                XCTFail("\(result)")
                 return
             }
             XCTAssertNotNil(image.b64_json)
@@ -108,7 +108,7 @@ final class OpenAISwiftTests: XCTestCase {
                 case .success(let response) = result,
                 let choice = response.choices.first
             else {
-                XCTFail()
+                XCTFail("\(result)")
                 return
             }
 
@@ -127,7 +127,7 @@ final class OpenAISwiftTests: XCTestCase {
                 case .success(let response) = result,
                 let choice = response.choices.first
             else {
-                XCTFail()
+                XCTFail("\(result)")
                 return
             }
 
