@@ -4,7 +4,9 @@ import XCTest
 final class OpenAISwiftTests: XCTestCase {
 
     static let Timeout: TimeInterval = 20
-    static let Token = "your key"
+
+    /// In Xcode, Edit Scheme -> Run -> Arguments Tab -> Add Environment Variable -> Add your OpenAI API token with a var named "OpenAIToken"
+    static let Token = ProcessInfo.processInfo.environment["OpenAIToken"]!
 
     func testConversation() throws {
         let openAI = OpenAISwift(authToken: Self.Token)
