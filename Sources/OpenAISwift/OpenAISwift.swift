@@ -43,7 +43,7 @@ extension OpenAISwift {
                                     size: OpenAIImageSize = .x256,
                                     responseFormat: OpenAIImageResponesFormat = .url,
                                     user: String? = nil,
-                                    completionHandler: @escaping (Result<OpenAIImageResponse, OpenAIError>) -> Void) {
+                                    completionHandler: @escaping (Result<ImageResponse, OpenAIError>) -> Void) {
         assert(prompt.count < 1000, "prompt must be less than 1000 characters")
         let endpoint = Endpoint.imageGenerations
         let body = ImageCommand(prompt: prompt, n: n, size: size.rawValue, responseFormat: responseFormat.rawValue, user: user)
@@ -52,12 +52,7 @@ extension OpenAISwift {
         makeRequest(request: request) { result in
             switch result {
             case .success(let success):
-                do {
-                    let res = try JSONDecoder().decode(OpenAIImageResponse.self, from: success)
-                    completionHandler(.success(res))
-                } catch {
-                    completionHandler(.failure(.decodingError(error: error)))
-                }
+                self.handleResponse(success, completionHandler: completionHandler)
             case .failure(let failure):
                 completionHandler(.failure(.genericError(error: failure)))
             }
@@ -77,7 +72,7 @@ extension OpenAISwift {
                                temperature: Float = 1.0,
                                stop: [String]? = nil,
                                user: String? = nil,
-                               completionHandler: @escaping (Result<OpenAI, OpenAIError>) -> Void) {
+                               completionHandler: @escaping (Result<TextResponse, OpenAIError>) -> Void) {
         let endpoint = Endpoint.completions
         let body = Command(prompt: prompt, suffix: suffix, model: model.modelName, maxTokens: maxTokens, temperature: temperature, stop: stop, user: user)
         let request = prepareRequest(endpoint, body: body)
@@ -98,7 +93,7 @@ extension OpenAISwift {
     ///   - model: The Model to use, the only support model is `text-davinci-edit-001`
     ///   - input: The Input For Example "My nam is Adam"
     ///   - completionHandler: Returns an OpenAI Data Model
-    public func sendEdits(with instruction: String, model: OpenAIModelType = .feature(.davinciText), input: String = "", completionHandler: @escaping (Result<OpenAI, OpenAIError>) -> Void) {
+    public func sendEdits(with instruction: String, model: OpenAIModelType = .feature(.davinciText), input: String = "", completionHandler: @escaping (Result<TextResponse, OpenAIError>) -> Void) {
         let endpoint = Endpoint.edits
         let body = Instruction(instruction: instruction, model: model.modelName, input: input)
         let request = prepareRequest(endpoint, body: body)
@@ -119,9 +114,9 @@ extension OpenAISwift {
     ///   - model: The Model to use, the only support model is `text-davinci-edit-001`
     ///   - input: The Input For Example "My nam is Adam"
     ///   - completionHandler: Returns an OpenAI Data Model
-    public func sendEmbedding(for input: String, model: OpenAIModelType = .gpt3(.davinci), completionHandler: @escaping (Result<OpenAI, OpenAIError>) -> Void) {
-        let endpoint = Endpoint.edits
-        let body = Embedding(input: input, model: model.modelName)
+    public func sendEmbedding(for input: String, model: OpenAIModelType = .embedding(.ada), completionHandler: @escaping (Result<EmbeddingResponse, OpenAIError>) -> Void) {
+        let endpoint = Endpoint.embeddings
+        let body = EmbeddingParams(input: input, model: model.modelName)
         let request = prepareRequest(endpoint, body: body)
 
         makeRequest(request: request) { result in
@@ -167,9 +162,9 @@ extension OpenAISwift {
         return request
     }
 
-    private func handleResponse(_ success: Data, completionHandler: @escaping (Result<OpenAI, OpenAIError>) -> Void) {
+    private func handleResponse<T: OpenAIResponse>(_ success: Data, completionHandler: @escaping (Result<T, OpenAIError>) -> Void) {
         do {
-            let res = try JSONDecoder().decode(OpenAI.self, from: success)
+            let res = try JSONDecoder().decode(T.self, from: success)
             completionHandler(.success(res))
         } catch {
             if let json = try? JSONSerialization.jsonObject(with: success) as? [String: Any],
@@ -198,7 +193,7 @@ extension OpenAISwift {
     /// - Returns: Returns an OpenAI Data Model
     @available(swift 5.5)
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
-    public func sendCompletion(with prompt: String, model: OpenAIModelType = .gpt3(.davinci), maxTokens: Int = 16) async throws -> OpenAI {
+    public func sendCompletion(with prompt: String, model: OpenAIModelType = .gpt3(.davinci), maxTokens: Int = 16) async throws -> TextResponse {
         return try await withCheckedThrowingContinuation { continuation in
             sendCompletion(with: prompt, model: model, maxTokens: maxTokens) { result in
                 continuation.resume(with: result)
@@ -214,7 +209,7 @@ extension OpenAISwift {
     ///   - completionHandler: Returns an OpenAI Data Model
     @available(swift 5.5)
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
-    public func sendEdits(with instruction: String, model: OpenAIModelType = .feature(.davinciText), input: String = "", completionHandler: @escaping (Result<OpenAI, OpenAIError>) -> Void) async throws -> OpenAI {
+    public func sendEdits(with instruction: String, model: OpenAIModelType = .feature(.davinciText), input: String = "", completionHandler: @escaping (Result<TextResponse, OpenAIError>) -> Void) async throws -> TextResponse {
         return try await withCheckedThrowingContinuation { continuation in
             sendEdits(with: instruction, model: model, input: input) { result in
                 continuation.resume(with: result)

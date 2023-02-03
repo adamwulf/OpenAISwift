@@ -7,7 +7,7 @@
 
 import Foundation
 
-class Embedding: Encodable {
+class EmbeddingParams: Encodable {
     var input: String
     var model: String
 

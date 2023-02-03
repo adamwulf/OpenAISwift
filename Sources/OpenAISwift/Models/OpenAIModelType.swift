@@ -17,12 +17,16 @@ public enum OpenAIModelType {
     
     /// ``Feature``Family of Models
     case feature(Feature)
+
+    /// ``Embedding`` Family of Models
+    case embedding(Embedding)
     
     public var modelName: String {
         switch self {
         case .gpt3(let model): return model.rawValue
         case .codex(let model): return model.rawValue
         case .feature(let model): return model.rawValue
+        case .embedding(let model): return model.rawValue
         }
     }
     
@@ -82,5 +86,10 @@ public enum OpenAIModelType {
 
         /// > Model Name: code-davinci-edit-001
         case davinciCode = "code-davinci-edit-001"
+    }
+
+    public enum Embedding: String {
+        /// > Model Name: text-embedding-ada-002
+        case ada = "text-embedding-ada-002"
     }
 }

@@ -137,4 +137,21 @@ final class OpenAISwiftTests: XCTestCase {
         wait(for: [expectation], timeout: Self.Timeout)
     }
 
+    func testEmbedding() throws {
+        let openAI = OpenAISwift(authToken: Self.Token)
+        let expectation = self.expectation(description: "expectation")
+
+        openAI.sendEmbedding(for: "Swift is a programming language") { result in
+            guard
+                case .success(let response) = result,
+                let data = response.data.first
+            else {
+                XCTFail("\(result)")
+                return
+            }
+            XCTAssertGreaterThan(data.embedding.count, 1000)
+            expectation.fulfill()
+        }
+        wait(for: [expectation], timeout: Self.Timeout)
+    }
 }
