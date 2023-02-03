@@ -3,7 +3,7 @@ import XCTest
 
 final class OpenAISwiftTests: XCTestCase {
 
-    static let Timeout: TimeInterval = 15
+    static let Timeout: TimeInterval = 20
     static let Token = "your key"
 
     func testConversation() throws {
@@ -56,6 +56,44 @@ final class OpenAISwiftTests: XCTestCase {
                 return
             }
             XCTAssert(choice.text.lowercased().contains("hi"))
+            expectation.fulfill()
+        }
+        wait(for: [expectation], timeout: Self.Timeout)
+    }
+
+    func testImageURLGeneration() throws {
+        let openAI = OpenAISwift(authToken: Self.Token)
+        let expectation = self.expectation(description: "expectation")
+
+        openAI.sendImageGeneration(with: "a cartoon bear", size: .x256) { result in
+            guard
+                case .success(let response) = result,
+                let image = response.data.first
+            else {
+                XCTFail()
+                return
+            }
+            XCTAssertNotNil(image.url)
+            XCTAssertNil(image.b64_json)
+            expectation.fulfill()
+        }
+        wait(for: [expectation], timeout: Self.Timeout)
+    }
+
+    func testImageB64Generation() throws {
+        let openAI = OpenAISwift(authToken: Self.Token)
+        let expectation = self.expectation(description: "expectation")
+
+        openAI.sendImageGeneration(with: "a cartoon bear", size: .x256, responseFormat: .b64JSON) { result in
+            guard
+                case .success(let response) = result,
+                let image = response.data.first
+            else {
+                XCTFail()
+                return
+            }
+            XCTAssertNotNil(image.b64_json)
+            XCTAssertNil(image.url)
             expectation.fulfill()
         }
         wait(for: [expectation], timeout: Self.Timeout)
