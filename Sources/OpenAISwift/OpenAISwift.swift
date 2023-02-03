@@ -67,7 +67,7 @@ extension OpenAISwift {
     ///   - completionHandler: Returns an OpenAI Data Model
     public func sendCompletion(with prompt: String,
                                suffix: String? = nil,
-                               model: OpenAIModelType = .gpt3(.davinci),
+                               model: CompletionsModel = .gpt3(.davinci),
                                maxTokens: Int = 16,
                                temperature: Float = 1.0,
                                stop: [String]? = nil,
@@ -93,7 +93,7 @@ extension OpenAISwift {
     ///   - model: The Model to use, the only support model is `text-davinci-edit-001`
     ///   - input: The Input For Example "My nam is Adam"
     ///   - completionHandler: Returns an OpenAI Data Model
-    public func sendEdits(with instruction: String, model: OpenAIModelType = .feature(.davinciText), input: String = "", completionHandler: @escaping (Result<TextResponse, OpenAIError>) -> Void) {
+    public func sendEdits(with instruction: String, model: EditsModel = .davinciText, input: String = "", completionHandler: @escaping (Result<TextResponse, OpenAIError>) -> Void) {
         let endpoint = Endpoint.edits
         let body = Instruction(instruction: instruction, model: model.modelName, input: input)
         let request = prepareRequest(endpoint, body: body)
@@ -114,7 +114,7 @@ extension OpenAISwift {
     ///   - model: The Model to use, the only support model is `text-davinci-edit-001`
     ///   - input: The Input For Example "My nam is Adam"
     ///   - completionHandler: Returns an OpenAI Data Model
-    public func sendEmbedding(for input: String, model: OpenAIModelType = .embedding(.ada), completionHandler: @escaping (Result<EmbeddingResponse, OpenAIError>) -> Void) {
+    public func sendEmbedding(for input: String, model: EmbeddingModel = .ada, completionHandler: @escaping (Result<EmbeddingResponse, OpenAIError>) -> Void) {
         let endpoint = Endpoint.embeddings
         let body = EmbeddingParams(input: input, model: model.modelName)
         let request = prepareRequest(endpoint, body: body)
@@ -193,7 +193,7 @@ extension OpenAISwift {
     /// - Returns: Returns an OpenAI Data Model
     @available(swift 5.5)
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
-    public func sendCompletion(with prompt: String, model: OpenAIModelType = .gpt3(.davinci), maxTokens: Int = 16) async throws -> TextResponse {
+    public func sendCompletion(with prompt: String, model: CompletionsModel = .gpt3(.davinci), maxTokens: Int = 16) async throws -> TextResponse {
         return try await withCheckedThrowingContinuation { continuation in
             sendCompletion(with: prompt, model: model, maxTokens: maxTokens) { result in
                 continuation.resume(with: result)
@@ -209,7 +209,7 @@ extension OpenAISwift {
     ///   - completionHandler: Returns an OpenAI Data Model
     @available(swift 5.5)
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
-    public func sendEdits(with instruction: String, model: OpenAIModelType = .feature(.davinciText), input: String = "", completionHandler: @escaping (Result<TextResponse, OpenAIError>) -> Void) async throws -> TextResponse {
+    public func sendEdits(with instruction: String, model: EditsModel = .davinciText, input: String = "", completionHandler: @escaping (Result<TextResponse, OpenAIError>) -> Void) async throws -> TextResponse {
         return try await withCheckedThrowingContinuation { continuation in
             sendEdits(with: instruction, model: model, input: input) { result in
                 continuation.resume(with: result)

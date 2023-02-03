@@ -124,7 +124,7 @@ final class OpenAISwiftTests: XCTestCase {
         let openAI = OpenAISwift(authToken: Self.Token)
         let expectation = self.expectation(description: "expectation")
 
-        openAI.sendEdits(with: "Fix the spelling mistake.", model: .feature(.davinciCode), input: "var recieveCode = 1234;") { result in
+        openAI.sendEdits(with: "Fix the spelling mistake.", model: .davinciCode, input: "var recieveCode = 1234;") { result in
             guard
                 case .success(let response) = result,
                 let choice = response.choices.first

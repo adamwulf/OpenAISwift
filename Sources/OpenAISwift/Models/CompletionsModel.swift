@@ -7,26 +7,22 @@
 
 import Foundation
 
+protocol OpenAIModel {
+    var modelName: String { get }
+}
+
 /// The type of model used to generate the output
-public enum OpenAIModelType {
+public enum CompletionsModel: OpenAIModel {
     /// ``GPT3`` Family of Models
     case gpt3(GPT3)
     
     /// ``Codex`` Family of Models
     case codex(Codex)
-    
-    /// ``Feature``Family of Models
-    case feature(Feature)
 
-    /// ``Embedding`` Family of Models
-    case embedding(Embedding)
-    
     public var modelName: String {
         switch self {
         case .gpt3(let model): return model.rawValue
         case .codex(let model): return model.rawValue
-        case .feature(let model): return model.rawValue
-        case .embedding(let model): return model.rawValue
         }
     }
     
@@ -72,24 +68,32 @@ public enum OpenAIModelType {
         /// > Model Name: code-cushman-001
         case cushman = "code-cushman-001"
     }
-    
-    
-    /// A set of models that are feature specific.
-    ///
-    ///  For example using the Edits endpoint requires a specific data model
-    ///
-    ///  You can read the [API Docs](https://beta.openai.com/docs/guides/completion/editing-text)
-    public enum Feature: String {
-        
-        /// > Model Name: text-davinci-edit-001
-        case davinciText = "text-davinci-edit-001"
+}
 
-        /// > Model Name: code-davinci-edit-001
-        case davinciCode = "code-davinci-edit-001"
+
+/// A set of models that are feature specific.
+///
+///  For example using the Edits endpoint requires a specific data model
+///
+///  You can read the [API Docs](https://beta.openai.com/docs/guides/completion/editing-text)
+public enum EditsModel: String, OpenAIModel {
+
+    /// > Model Name: text-davinci-edit-001
+    case davinciText = "text-davinci-edit-001"
+
+    /// > Model Name: code-davinci-edit-001
+    case davinciCode = "code-davinci-edit-001"
+
+    public var modelName: String {
+        return rawValue
     }
+}
 
-    public enum Embedding: String {
-        /// > Model Name: text-embedding-ada-002
-        case ada = "text-embedding-ada-002"
+public enum EmbeddingModel: String, OpenAIModel {
+    /// > Model Name: text-embedding-ada-002
+    case ada = "text-embedding-ada-002"
+
+    public var modelName: String {
+        return rawValue
     }
 }
