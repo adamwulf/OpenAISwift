@@ -46,7 +46,7 @@ extension OpenAISwift {
                                     completionHandler: @escaping (Result<ImageResponse, OpenAIError>) -> Void) {
         assert(prompt.count < 1000, "prompt must be less than 1000 characters")
         let endpoint = Endpoint.imageGenerations
-        let body = ImageCommand(prompt: prompt, n: n, size: size.rawValue, responseFormat: responseFormat.rawValue, user: user)
+        let body = ImageParams(prompt: prompt, n: n, size: size.rawValue, responseFormat: responseFormat.rawValue, user: user)
         let request = prepareRequest(endpoint, body: body)
 
         makeRequest(request: request) { result in
@@ -74,7 +74,7 @@ extension OpenAISwift {
                                user: String? = nil,
                                completionHandler: @escaping (Result<TextResponse, OpenAIError>) -> Void) {
         let endpoint = Endpoint.completions
-        let body = Command(prompt: prompt, suffix: suffix, model: model.modelName, maxTokens: maxTokens, temperature: temperature, stop: stop, user: user)
+        let body = CompletionParams(prompt: prompt, suffix: suffix, model: model.modelName, maxTokens: maxTokens, temperature: temperature, stop: stop, user: user)
         let request = prepareRequest(endpoint, body: body)
         
         makeRequest(request: request) { result in
@@ -99,7 +99,7 @@ extension OpenAISwift {
                           temperature: Float = 1.0,
                           completionHandler: @escaping (Result<TextResponse, OpenAIError>) -> Void) {
         let endpoint = Endpoint.edits
-        let body = Instruction(instruction: instruction, input: input, model: model.modelName, temperature: temperature)
+        let body = EditParams(instruction: instruction, input: input, model: model.modelName, temperature: temperature)
         let request = prepareRequest(endpoint, body: body)
         
         makeRequest(request: request) { result in

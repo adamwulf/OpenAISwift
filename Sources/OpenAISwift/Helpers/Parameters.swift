@@ -4,7 +4,7 @@
 
 import Foundation
 
-class Command: Encodable {
+class CompletionParams: Encodable {
     var prompt: String
     var suffix: String?
     var model: String
@@ -34,8 +34,43 @@ class Command: Encodable {
     }
 }
 
+class EditParams: Encodable {
+    var instruction: String
+    var model: String
+    var input: String
+    var temperature: Float
 
-class ImageCommand: Encodable {
+    init(instruction: String, input: String, model: String, temperature: Float) {
+        self.instruction = instruction
+        self.input = input
+        self.model = model
+        self.temperature = temperature
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case instruction
+        case model
+        case input
+        case temperature
+    }
+}
+
+class EmbeddingParams: Encodable {
+    var input: String
+    var model: String
+
+    init(input: String, model: String) {
+        self.input = input
+        self.model = model
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case input
+        case model
+    }
+}
+
+class ImageParams: Encodable {
     var prompt: String
     var n: Int?
     var size: String?
