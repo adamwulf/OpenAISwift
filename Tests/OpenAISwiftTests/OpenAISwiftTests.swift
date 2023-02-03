@@ -99,4 +99,23 @@ final class OpenAISwiftTests: XCTestCase {
         wait(for: [expectation], timeout: Self.Timeout)
     }
 
+    func testEditText() throws {
+        let openAI = OpenAISwift(authToken: Self.Token)
+        let expectation = self.expectation(description: "expectation")
+
+        openAI.sendEdits(with: "Fix the spelling mistake.", input: "My nam is Adam.") { result in
+            guard
+                case .success(let response) = result,
+                let choice = response.choices.first
+            else {
+                XCTFail()
+                return
+            }
+
+            XCTAssertEqual(choice.text.trimmingCharacters(in: .whitespacesAndNewlines), "My name is Adam.")
+            expectation.fulfill()
+        }
+        wait(for: [expectation], timeout: Self.Timeout)
+    }
+
 }

@@ -78,9 +78,9 @@ public enum OpenAIModelType {
     public enum Feature: String {
         
         /// > Model Name: text-davinci-edit-001
-        case davinci = "text-davinci-edit-001"
+        case davinciText = "text-davinci-edit-001"
 
         /// > Model Name: code-davinci-edit-001
-        case davinci = "code-davinci-edit-001"
+        case davinciCode = "code-davinci-edit-001"
     }
 }
