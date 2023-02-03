@@ -118,4 +118,23 @@ final class OpenAISwiftTests: XCTestCase {
         wait(for: [expectation], timeout: Self.Timeout)
     }
 
+    func testEditCode() throws {
+        let openAI = OpenAISwift(authToken: Self.Token)
+        let expectation = self.expectation(description: "expectation")
+
+        openAI.sendEdits(with: "Fix the spelling mistake.", model: .feature(.davinciCode), input: "var recieveCode = 1234;") { result in
+            guard
+                case .success(let response) = result,
+                let choice = response.choices.first
+            else {
+                XCTFail()
+                return
+            }
+
+            XCTAssertEqual(choice.text.trimmingCharacters(in: .whitespacesAndNewlines), "var receiveCode = 1234;")
+            expectation.fulfill()
+        }
+        wait(for: [expectation], timeout: Self.Timeout)
+    }
+
 }
