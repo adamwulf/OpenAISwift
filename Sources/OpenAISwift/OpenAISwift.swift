@@ -118,7 +118,7 @@ extension OpenAISwift {
     ///   - model: The Model to use, the only support model is `text-davinci-edit-001`
     ///   - input: The Input For Example "My nam is Adam"
     ///   - completionHandler: Returns an OpenAI Data Model
-    public func sendEmbedding(for input: String, model: EmbeddingModel = .ada, completionHandler: @escaping (Result<EmbeddingResponse, OpenAIError>) -> Void) {
+    public func sendEmbedding(for input: String, model: EmbeddingModel = .adaV2, completionHandler: @escaping (Result<EmbeddingResponse, OpenAIError>) -> Void) {
         let endpoint = Endpoint.embeddings
         let body = EmbeddingParams(input: input, model: model.modelName)
         let request = prepareRequest(endpoint, body: body)

@@ -9,6 +9,7 @@ import Foundation
 
 protocol OpenAIModel {
     var modelName: String { get }
+    var maxTokens: Int { get }
 }
 
 /// The type of model used to generate the output
@@ -23,6 +24,13 @@ public enum CompletionsModel: OpenAIModel {
         switch self {
         case .gpt3(let model): return model.rawValue
         case .codex(let model): return model.rawValue
+        }
+    }
+
+    public var maxTokens: Int {
+        switch self {
+        case .gpt3(let model): return model.maxTokens
+        case .codex(let model): return model.maxTokens
         }
     }
     
@@ -50,6 +58,15 @@ public enum CompletionsModel: OpenAIModel {
         ///
         /// > Model Name: text-ada-001
         case ada = "text-ada-001"
+
+        public var maxTokens: Int {
+            switch self {
+            case .davinci: return 4000
+            case .curie: return 2048
+            case .babbage: return 2048
+            case .ada: return 2048
+            }
+        }
     }
     
     /// A set of models that can understand and generate code, including translating natural language to code
@@ -67,6 +84,13 @@ public enum CompletionsModel: OpenAIModel {
         ///
         /// > Model Name: code-cushman-001
         case cushman = "code-cushman-001"
+
+        public var maxTokens: Int {
+            switch self {
+            case .davinci: return 8000
+            case .cushman: return 2048
+            }
+        }
     }
 }
 
@@ -87,13 +111,29 @@ public enum EditsModel: String, OpenAIModel {
     public var modelName: String {
         return rawValue
     }
+
+    public var maxTokens: Int {
+        switch self {
+        case .davinciText: return 3000
+        case .davinciCode: return 3000
+        }
+    }
 }
 
 public enum EmbeddingModel: String, OpenAIModel {
     /// > Model Name: text-embedding-ada-002
-    case ada = "text-embedding-ada-002"
+    case adaV2 = "text-embedding-ada-002"
+    /// > Model Name: text-embedding-ada-001
+    case adaV1 = "text-embedding-ada-001"
 
     public var modelName: String {
         return rawValue
+    }
+
+    public var maxTokens: Int {
+        switch self {
+        case .adaV1: return 2046
+        case .adaV2: return 8191
+        }
     }
 }
