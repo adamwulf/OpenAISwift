@@ -93,9 +93,13 @@ extension OpenAISwift {
     ///   - model: The Model to use, the only support model is `text-davinci-edit-001`
     ///   - input: The Input For Example "My nam is Adam"
     ///   - completionHandler: Returns an OpenAI Data Model
-    public func sendEdits(with instruction: String, model: EditsModel = .davinciText, input: String = "", completionHandler: @escaping (Result<TextResponse, OpenAIError>) -> Void) {
+    public func sendEdits(with instruction: String,
+                          input: String,
+                          model: EditsModel = .davinciText,
+                          temperature: Float = 1.0,
+                          completionHandler: @escaping (Result<TextResponse, OpenAIError>) -> Void) {
         let endpoint = Endpoint.edits
-        let body = Instruction(instruction: instruction, model: model.modelName, input: input)
+        let body = Instruction(instruction: instruction, input: input, model: model.modelName, temperature: temperature)
         let request = prepareRequest(endpoint, body: body)
         
         makeRequest(request: request) { result in
@@ -211,7 +215,7 @@ extension OpenAISwift {
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public func sendEdits(with instruction: String, model: EditsModel = .davinciText, input: String = "", completionHandler: @escaping (Result<TextResponse, OpenAIError>) -> Void) async throws -> TextResponse {
         return try await withCheckedThrowingContinuation { continuation in
-            sendEdits(with: instruction, model: model, input: input) { result in
+            sendEdits(with: instruction, input: input, model: model) { result in
                 continuation.resume(with: result)
             }
         }
