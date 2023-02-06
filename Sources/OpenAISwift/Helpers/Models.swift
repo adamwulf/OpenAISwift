@@ -141,7 +141,7 @@ extension CompletionsModel: Equatable {
 ///  For example using the Edits endpoint requires a specific data model
 ///
 ///  You can read the [API Docs](https://beta.openai.com/docs/guides/completion/editing-text)
-public enum EditsModel: String, OpenAIModel {
+public enum EditsModel: String, Codable, Equatable, OpenAIModel {
 
     /// > Model Name: text-davinci-edit-001
     case davinciText = "text-davinci-edit-001"
@@ -161,7 +161,7 @@ public enum EditsModel: String, OpenAIModel {
     }
 }
 
-public enum EmbeddingModel: String, OpenAIModel {
+public enum EmbeddingModel: String, Codable, Equatable, OpenAIModel {
     /// > Model Name: text-embedding-ada-002
     case adaV2 = "text-embedding-ada-002"
     /// > Model Name: text-embedding-ada-001
