@@ -37,7 +37,7 @@ public enum CompletionsModel: OpenAIModel {
     /// A set of models that can understand and generate natural language
     ///
     /// [GPT-3 Models OpenAI API Docs](https://beta.openai.com/docs/models/gpt-3)
-    public enum GPT3: String {
+    public enum GPT3: String, Codable {
         
         /// Most capable GPT-3 model. Can do any task the other models can do, often with higher quality, longer output and better instruction-following. Also supports inserting completions within text.
         ///
@@ -74,7 +74,7 @@ public enum CompletionsModel: OpenAIModel {
     /// [Codex Models OpenAI API Docs](https://beta.openai.com/docs/models/codex)
     ///
     ///  >  Limited Beta
-    public enum Codex: String {
+    public enum Codex: String, Codable {
         /// Most capable Codex model. Particularly good at translating natural language to code. In addition to completing code, also supports inserting completions within code.
         ///
         /// > Model Name: code-davinci-002
@@ -94,6 +94,47 @@ public enum CompletionsModel: OpenAIModel {
     }
 }
 
+extension CompletionsModel: Codable {
+    private enum CodingKeys: String, CodingKey {
+        case gpt3
+        case codex
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        if let value = try? container.decode(GPT3.self, forKey: .gpt3) {
+            self = .gpt3(value)
+        } else if let value = try? container.decode(Codex.self, forKey: .codex) {
+            self = .codex(value)
+        } else {
+            let context = DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Unsupported CompletionsModel type")
+            throw DecodingError.dataCorrupted(context)
+        }
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        switch self {
+        case .gpt3(let value):
+            try container.encode(value, forKey: .gpt3)
+        case .codex(let value):
+            try container.encode(value, forKey: .codex)
+        }
+    }
+}
+
+extension CompletionsModel: Equatable {
+    public static func == (lhs: CompletionsModel, rhs: CompletionsModel) -> Bool {
+        switch (lhs, rhs) {
+        case (.gpt3(let lhsValue), .gpt3(let rhsValue)):
+            return lhsValue == rhsValue
+        case (.codex(let lhsValue), .codex(let rhsValue)):
+            return lhsValue == rhsValue
+        default:
+            return false
+        }
+    }
+}
 
 /// A set of models that are feature specific.
 ///

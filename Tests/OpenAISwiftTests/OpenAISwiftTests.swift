@@ -156,4 +156,11 @@ final class OpenAISwiftTests: XCTestCase {
         }
         wait(for: [expectation], timeout: Self.Timeout)
     }
+
+    func testEncodeModel() throws {
+        let model: CompletionsModel = .gpt3(.davinci)
+        let jsonData = try JSONEncoder().encode(model)
+        let decoded = try JSONDecoder().decode(CompletionsModel.self, from: jsonData)
+        XCTAssertEqual(model, decoded)
+    }
 }
