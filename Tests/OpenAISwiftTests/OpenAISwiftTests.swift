@@ -163,4 +163,11 @@ final class OpenAISwiftTests: XCTestCase {
         let decoded = try JSONDecoder().decode(CompletionsModel.self, from: jsonData)
         XCTAssertEqual(model, decoded)
     }
+
+    func testEncodeModel2() throws {
+        let model: CompletionsModel = .gpt3(.davinci)
+        let jsonDictionary = model.asDictionary()
+        let decoded = CompletionsModel(with: jsonDictionary)
+        XCTAssertEqual(model, decoded)
+    }
 }
