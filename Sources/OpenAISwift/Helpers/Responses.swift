@@ -46,9 +46,9 @@ public struct Image: Codable {
 }
 
 public struct Usage: Codable {
-    let promptTokens: Int
-    let completionTokens: Int?
-    let totalTokens: Int
+    public let promptTokens: Int
+    public let completionTokens: Int?
+    public let totalTokens: Int
 
     enum CodingKeys: String, CodingKey {
         case promptTokens = "prompt_tokens"
