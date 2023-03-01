@@ -38,7 +38,12 @@ public enum CompletionsModel: OpenAIModel {
     ///
     /// [GPT-3 Models OpenAI API Docs](https://beta.openai.com/docs/models/gpt-3)
     public enum GPT3: String, Codable {
-        
+
+        /// Most capable GPT-3 model. Can do any task the other models can do, often with higher quality, longer output and better instruction-following. Also supports inserting completions within text.
+        ///
+        /// > Model Name: text-davinci-003
+        case chatgpt = "gpt-3.5-turbo"
+
         /// Most capable GPT-3 model. Can do any task the other models can do, often with higher quality, longer output and better instruction-following. Also supports inserting completions within text.
         ///
         /// > Model Name: text-davinci-003
@@ -61,6 +66,7 @@ public enum CompletionsModel: OpenAIModel {
 
         public var maxTokens: Int {
             switch self {
+            case .chatgpt: return 4096
             case .davinci: return 4000
             case .curie: return 2048
             case .babbage: return 2048
