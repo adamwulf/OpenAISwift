@@ -5,6 +5,7 @@
 import Foundation
 
 enum Endpoint {
+    case chat
     case completions
     case embeddings
     case edits
@@ -14,6 +15,8 @@ enum Endpoint {
 extension Endpoint {
     var path: String {
         switch self {
+        case .chat:
+            return "/v1/chat/completions"
         case .completions:
             return "/v1/completions"
         case .embeddings:
@@ -27,14 +30,14 @@ extension Endpoint {
     
     var method: String {
         switch self {
-        case .completions, .embeddings, .edits, .imageGenerations:
+        case .chat, .completions, .embeddings, .edits, .imageGenerations:
             return "POST"
         }
     }
     
     func baseURL() -> String {
         switch self {
-        case .completions, .embeddings, .edits, .imageGenerations:
+        case .chat, .completions, .embeddings, .edits, .imageGenerations:
             return "https://api.openai.com"
         }
     }

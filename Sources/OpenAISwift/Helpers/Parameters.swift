@@ -4,6 +4,33 @@
 
 import Foundation
 
+class ChatCompletionParams: Encodable {
+    var messages: [OpenAIChatMessage]
+    var model: String
+    var maxTokens: Int
+    var temperature: Float
+    var stop: [String]?
+    var user: String?
+
+    init(messages: [OpenAIChatMessage], model: String, maxTokens: Int, temperature: Float, stop: [String]?, user: String?) {
+        self.messages = messages
+        self.model = model
+        self.maxTokens = maxTokens
+        self.temperature = temperature
+        self.stop = stop
+        self.user = user
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case messages
+        case model
+        case maxTokens = "max_tokens"
+        case temperature
+        case stop
+        case user
+    }
+}
+
 class CompletionParams: Encodable {
     var prompt: String
     var suffix: String?

@@ -6,15 +6,41 @@ import Foundation
 
 protocol OpenAIResponse: Codable { }
 
+public struct ChatChoice: Codable {
+    public struct Message: Codable {
+        public let role: String
+        public let content: String
+    }
+    public let message: Message
+}
+
+public struct ChatResponse: OpenAIResponse {
+    public let object: String
+    public let model: String?
+    public let choices: [ChatChoice]
+    public let usage: Usage
+}
+
 public struct TextResponse: OpenAIResponse {
     public let object: String
     public let model: String?
     public let choices: [Choice]
     public let usage: Usage
+
+    public init(object: String, model: String?, choices: [Choice], usage: Usage) {
+        self.object = object
+        self.model = model
+        self.choices = choices
+        self.usage = usage
+    }
 }
 
 public struct Choice: Codable {
     public let text: String
+
+    public init(text: String) {
+        self.text = text
+    }
 }
 
 public struct EmbeddingResponse: OpenAIResponse {

@@ -30,7 +30,50 @@ public class OpenAISwift {
     }
 }
 
+public enum OpenAIChatRole: String, Encodable {
+    case system
+    case user
+    case agent
+}
+
+public struct OpenAIChatMessage: Encodable {
+    let role: OpenAIChatRole
+    let content: String
+
+    public init(role: OpenAIChatRole, content: String) {
+        self.role = role
+        self.content = content
+    }
+}
+
 extension OpenAISwift {
+    /// Send a Chat Completion to the OpenAI API
+    /// - Parameters:
+    ///   - messages: The Text Prompt
+    ///   - model: The AI Model to Use. Set to `OpenAIModelType.gpt3(.davinci)` by default which is the most capable model
+    ///   - maxTokens: The limit character for the returned response, defaults to 16 as per the API
+    ///   - completionHandler: Returns an OpenAI Data Model
+    public func sendCompletion(with messages: [OpenAIChatMessage],
+                               model: CompletionsModel = .gpt35(.stable),
+                               maxTokens: Int = 16,
+                               temperature: Float = 1.0,
+                               stop: [String]? = nil,
+                               user: String? = nil,
+                               completionHandler: @escaping (Result<ChatResponse, OpenAIError>) -> Void) {
+        let endpoint = Endpoint.chat
+        let body = ChatCompletionParams(messages: messages, model: model.modelName, maxTokens: maxTokens, temperature: temperature, stop: stop, user: user)
+        let request = prepareRequest(endpoint, body: body)
+
+        makeRequest(request: request) { result in
+            switch result {
+            case .success(let success):
+                self.handleResponse(success, completionHandler: completionHandler)
+            case .failure(let failure):
+                completionHandler(.failure(.genericError(error: failure)))
+            }
+        }
+    }
+    
     /// Send an Image Generation to the OpenAI API
     /// - Parameters:
     ///   - prompt: A text description of the desired image(s). The maximum length is 1000 characters.

@@ -14,14 +14,18 @@ protocol OpenAIModel {
 
 /// The type of model used to generate the output
 public enum CompletionsModel: OpenAIModel {
-    /// ``GPT3`` Family of Models
+    /// ``GPT-3.5`` Family of Models
+    case gpt35(GPT35)
+
+    /// ``GPT-3`` Family of Models
     case gpt3(GPT3)
-    
+
     /// ``Codex`` Family of Models
     case codex(Codex)
 
     public var modelName: String {
         switch self {
+        case .gpt35(let model): return model.rawValue
         case .gpt3(let model): return model.rawValue
         case .codex(let model): return model.rawValue
         }
@@ -29,20 +33,35 @@ public enum CompletionsModel: OpenAIModel {
 
     public var maxTokens: Int {
         switch self {
+        case .gpt35(let model): return model.maxTokens
         case .gpt3(let model): return model.maxTokens
         case .codex(let model): return model.maxTokens
         }
     }
-    
+
+    public enum GPT35: String, Codable {
+        /// Most capable GPT-3 model. Can do any task the other models can do, often with higher quality, longer output and better instruction-following. Also supports inserting completions within text.
+        ///
+        /// > Model Name: gpt-3.5-turbo
+        case stable = "gpt-3.5-turbo"
+
+        /// Snapshot of gpt-3.5-turbo from March 1st 2023. Unlike gpt-3.5-turbo, this model will not receive updates, and will only be supported for a three month period ending on June 1st 2023.
+        ///
+        /// > Model Name: gpt-3.5-turbo-0301
+        case snapshot0301 = "gpt-3.5-turbo-0301"
+
+        public var maxTokens: Int {
+            switch self {
+            case .stable: return 4096
+            case .snapshot0301: return 4096
+            }
+        }
+    }
+
     /// A set of models that can understand and generate natural language
     ///
     /// [GPT-3 Models OpenAI API Docs](https://beta.openai.com/docs/models/gpt-3)
     public enum GPT3: String, Codable {
-
-        /// Most capable GPT-3 model. Can do any task the other models can do, often with higher quality, longer output and better instruction-following. Also supports inserting completions within text.
-        ///
-        /// > Model Name: text-davinci-003
-        case chatgpt = "gpt-3.5-turbo"
 
         /// Most capable GPT-3 model. Can do any task the other models can do, often with higher quality, longer output and better instruction-following. Also supports inserting completions within text.
         ///
@@ -66,7 +85,6 @@ public enum CompletionsModel: OpenAIModel {
 
         public var maxTokens: Int {
             switch self {
-            case .chatgpt: return 4096
             case .davinci: return 4000
             case .curie: return 2048
             case .babbage: return 2048
@@ -102,13 +120,16 @@ public enum CompletionsModel: OpenAIModel {
 
 extension CompletionsModel: Codable {
     private enum CodingKeys: String, CodingKey {
+        case gpt35
         case gpt3
         case codex
     }
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        if let value = try? container.decode(GPT3.self, forKey: .gpt3) {
+        if let value = try? container.decode(GPT35.self, forKey: .gpt35) {
+            self = .gpt35(value)
+        } else if let value = try? container.decode(GPT3.self, forKey: .gpt3) {
             self = .gpt3(value)
         } else if let value = try? container.decode(Codex.self, forKey: .codex) {
             self = .codex(value)
@@ -121,6 +142,8 @@ extension CompletionsModel: Codable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         switch self {
+        case .gpt35(let value):
+            try container.encode(value, forKey: .gpt35)
         case .gpt3(let value):
             try container.encode(value, forKey: .gpt3)
         case .codex(let value):
