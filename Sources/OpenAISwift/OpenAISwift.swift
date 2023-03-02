@@ -33,7 +33,7 @@ public class OpenAISwift {
 public enum OpenAIChatRole: String, Encodable {
     case system
     case user
-    case agent
+    case assistant
 }
 
 public struct OpenAIChatMessage: Encodable {
