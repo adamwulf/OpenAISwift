@@ -11,14 +11,16 @@ class ChatCompletionParams: Encodable {
     var temperature: Float
     var stop: [String]?
     var user: String?
+    var stream: Bool
 
-    init(messages: [OpenAIChatMessage], model: String, maxTokens: Int, temperature: Float, stop: [String]?, user: String?) {
+    init(messages: [OpenAIChatMessage], model: String, maxTokens: Int, temperature: Float, stop: [String]?, user: String?, stream: Bool = false) {
         self.messages = messages
         self.model = model
         self.maxTokens = maxTokens
         self.temperature = temperature
         self.stop = stop
         self.user = user
+        self.stream = stream
     }
 
     enum CodingKeys: String, CodingKey {
@@ -28,6 +30,7 @@ class ChatCompletionParams: Encodable {
         case temperature
         case stop
         case user
+        case stream
     }
 }
 

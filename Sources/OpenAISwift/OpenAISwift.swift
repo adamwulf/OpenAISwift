@@ -24,6 +24,7 @@ public enum OpenAIImageResponesFormat: String {
 
 public class OpenAISwift {
     fileprivate(set) var token: String?
+    fileprivate var taskCache: [DataTaskDelegate] = []
 
     public init(authToken: String) {
         self.token = authToken
@@ -237,6 +238,35 @@ extension OpenAISwift {
     ///   - messages: The Text Prompt
     ///   - model: The AI Model to Use. Set to `OpenAIModelType.gpt3(.davinci)` by default which is the most capable model
     ///   - maxTokens: The limit character for the returned response, defaults to 16 as per the API
+    ///   - completionHandler: Returns an OpenAI Data Model
+    @available(macOS 12.0, *)
+    public func realtimeCompletion(with messages: [OpenAIChatMessage],
+                                   model: CompletionsModel = .gpt35(.stable),
+                                   maxTokens: Int = 16,
+                                   temperature: Float = 1.0,
+                                   stop: [String]? = nil,
+                                   user: String? = nil,
+                                   update:  @escaping (ChatResponse) -> Void,
+                                   completionHandler: @escaping (Result<ChatResponse, OpenAIError>) -> Void) {
+        let endpoint = Endpoint.chat
+        let body = ChatCompletionParams(messages: messages, model: model.modelName, maxTokens: maxTokens, temperature: temperature, stop: stop, user: user, stream: true)
+        let request = prepareRequest(endpoint, body: body)
+
+        let delegate = DataTaskDelegate()
+        let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
+        let task = session.dataTask(with: request)
+        self.taskCache.append(delegate)
+        print("added delegate")
+        task.resume()
+    }
+}
+
+extension OpenAISwift {
+    /// Send a Chat Completion to the OpenAI API
+    /// - Parameters:
+    ///   - messages: The Text Prompt
+    ///   - model: The AI Model to Use. Set to `OpenAIModelType.gpt3(.davinci)` by default which is the most capable model
+    ///   - maxTokens: The limit character for the returned response, defaults to 16 as per the API
     @available(swift 5.5)
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public func sendCompletion(with messages: [OpenAIChatMessage],
@@ -320,5 +350,30 @@ extension OpenAISwift {
                 continuation.resume(with: result)
             }
         }
+    }
+}
+
+
+public class DataTaskDelegate: NSObject, URLSessionDataDelegate {
+    var receivedData = Data()
+
+    public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+        receivedData.append(data)
+        // Process the received data here
+        print("received: " + String(data: data, encoding: .utf8)!)
+    }
+
+    public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        if let error = error {
+            // Handle the error here
+            print("done: error")
+        } else {
+            // The task completed successfully
+            print("done: ok")
+        }
+    }
+
+    deinit {
+        print("deinit delegate")
     }
 }
