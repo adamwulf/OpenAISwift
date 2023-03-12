@@ -8,15 +8,14 @@ final class OpenAISwiftTests: XCTestCase {
     /// In Xcode, Edit Scheme -> Run -> Arguments Tab -> Add Environment Variable -> Add your OpenAI API token with a var named "OpenAIToken"
     static let Token = ProcessInfo.processInfo.environment["OpenAIToken"]!
 
-    @available(macOS 12.0, *)
     func testRealtimeConversation() throws {
         let openAI = OpenAISwift(authToken: Self.Token)
         let expectation = self.expectation(description: "expectation")
         let prompt = "Please tell me a story about a friendly duck and a friendly bear"
 
         openAI.realtimeCompletion(with: [OpenAIChatMessage(role: .user, content: prompt)],
-                                  maxTokens: 1000) { update in
-            print("\(update))")
+                                  maxTokens: 1000) { update, err in
+            print("\(String(describing: update))")
         } completionHandler: { result in
             guard
                 case .success(let foo) = result,

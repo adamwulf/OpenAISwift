@@ -239,20 +239,29 @@ extension OpenAISwift {
     ///   - model: The AI Model to Use. Set to `OpenAIModelType.gpt3(.davinci)` by default which is the most capable model
     ///   - maxTokens: The limit character for the returned response, defaults to 16 as per the API
     ///   - completionHandler: Returns an OpenAI Data Model
-    @available(macOS 12.0, *)
     public func realtimeCompletion(with messages: [OpenAIChatMessage],
                                    model: CompletionsModel = .gpt35(.stable),
                                    maxTokens: Int = 16,
                                    temperature: Float = 1.0,
                                    stop: [String]? = nil,
                                    user: String? = nil,
-                                   update:  @escaping (ChatResponse) -> Void,
+                                   updateHandler:  @escaping (RealtimeChatUpdate?, Error?) -> Void,
                                    completionHandler: @escaping (Result<ChatResponse, OpenAIError>) -> Void) {
         let endpoint = Endpoint.chat
         let body = ChatCompletionParams(messages: messages, model: model.modelName, maxTokens: maxTokens, temperature: temperature, stop: stop, user: user, stream: true)
         let request = prepareRequest(endpoint, body: body)
 
         let delegate = DataTaskDelegate()
+        delegate.didReceiveUpdate = { str in
+            print("update: " + str)
+        }
+        delegate.didComplete = { data, urlResponse, error in
+            if let error = error {
+                completionHandler(.failure(.genericError(error: error)))
+            } else if let data = data {
+                self.handleResponse(data, completionHandler: completionHandler)
+            }
+        }
         let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
         let task = session.dataTask(with: request)
         self.taskCache.append(delegate)
@@ -354,26 +363,44 @@ extension OpenAISwift {
 }
 
 
+@available(macOS 13.0, *)
 public class DataTaskDelegate: NSObject, URLSessionDataDelegate {
     var receivedData = Data()
+    var receivedString = ""
+    var didReceiveUpdate: ((String) -> Void)?
+    var didComplete: ((Data?, URLResponse?, Error?) -> Void)?
 
     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
         receivedData.append(data)
-        // Process the received data here
-        print("received: " + String(data: data, encoding: .utf8)!)
+        guard let str = String(data: receivedData, encoding: .utf8) else { return }
+        var messages = str.components(separatedBy: "\n\n")
+        while var message = messages.first {
+            guard message.hasPrefix("data:") else {
+                messages.removeFirst()
+                continue
+            }
+            do {
+                message.trimPrefix("data:")
+                let res = try JSONDecoder().decode(RealtimeChatUpdate.self, from: Data(message.utf8))
+                if let content = res.choices.first?.delta.content {
+                    receivedString += content
+                }
+            } catch {
+                // noop
+            }
+            messages.removeFirst()
+        }
+        receivedData = Data(messages.joined(separator: "\n\n").utf8)
+        didReceiveUpdate?(receivedString)
     }
 
     public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         if let error = error {
             // Handle the error here
-            print("done: error")
+            didComplete?(receivedData, task.response, error)
         } else {
             // The task completed successfully
-            print("done: ok")
+            didComplete?(receivedData, task.response, nil)
         }
-    }
-
-    deinit {
-        print("deinit delegate")
     }
 }

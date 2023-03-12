@@ -21,6 +21,22 @@ public struct ChatResponse: OpenAIResponse {
     public let usage: Usage
 }
 
+public struct RealtimeChatChoice: Codable {
+    public struct Delta: Codable {
+        public let role: String?
+        public let content: String?
+    }
+    public let delta: Delta
+}
+
+public struct RealtimeChatUpdate: OpenAIResponse {
+    public let object: String
+    public let model: String?
+    public let choices: [RealtimeChatChoice]
+    public let created: Int
+    public let id: String
+}
+
 public struct TextResponse: OpenAIResponse {
     public let object: String
     public let model: String?
