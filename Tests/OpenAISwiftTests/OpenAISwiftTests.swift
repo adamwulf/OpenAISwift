@@ -33,7 +33,7 @@ final class OpenAISwiftTests: XCTestCase {
         let openAI = OpenAISwift(authToken: Self.Token)
         let expectation = self.expectation(description: "expectation")
 
-        openAI.sendCompletion(with: "Please tell me a story about a friendly duck and a friendly bear") { result in
+        openAI.sendCompletion(with: "Please tell me a story about a friendly duck and a friendly bear", maxTokens: 1000) { result in
             guard
                 case .success(let foo) = result,
                 let choice = foo.choices.first
