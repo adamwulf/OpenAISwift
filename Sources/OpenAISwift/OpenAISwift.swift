@@ -245,32 +245,47 @@ extension OpenAISwift {
                                    temperature: Float = 1.0,
                                    stop: [String]? = nil,
                                    user: String? = nil,
-                                   updateHandler:  @escaping (RealtimeChatUpdate?, Error?) -> Void,
-                                   completionHandler: @escaping (Result<ChatResponse, OpenAIError>) -> Void) {
+                                   updateHandler:  @escaping (String) -> Void,
+                                   completionHandler: @escaping (Result<String, OpenAIError>) -> Void) {
         let endpoint = Endpoint.chat
         let body = ChatCompletionParams(messages: messages, model: model.modelName, maxTokens: maxTokens, temperature: temperature, stop: stop, user: user, stream: true)
         let request = prepareRequest(endpoint, body: body)
 
         let delegate = DataTaskDelegate()
         delegate.didReceiveUpdate = { str in
-            print("update: " + str)
+            updateHandler(str)
         }
-        delegate.didComplete = { data, urlResponse, error in
+        delegate.didComplete = { message, error in
             if let error = error {
                 completionHandler(.failure(.genericError(error: error)))
-            } else if let data = data {
-                self.handleResponse(data, completionHandler: completionHandler)
+            } else if let message = message {
+                completionHandler(.success(message.content))
             }
         }
         let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
         let task = session.dataTask(with: request)
         self.taskCache.append(delegate)
-        print("added delegate")
         task.resume()
     }
 }
 
 extension OpenAISwift {
+    /// Send a Chat Completion to the OpenAI API
+    /// - Parameters:
+    ///   - messages: The Text Prompt
+    ///   - model: The AI Model to Use. Set to `OpenAIModelType.gpt3(.davinci)` by default which is the most capable model
+    ///   - maxTokens: The limit character for the returned response, defaults to 16 as per the API
+    ///   - completionHandler: Returns an OpenAI Data Model
+    public func realtimeCompletion(with messages: [OpenAIChatMessage],
+                                   model: CompletionsModel = .gpt35(.stable),
+                                   maxTokens: Int = 16,
+                                   temperature: Float = 1.0,
+                                   stop: [String]? = nil,
+                                   user: String? = nil) {
+
+    }
+
+
     /// Send a Chat Completion to the OpenAI API
     /// - Parameters:
     ///   - messages: The Text Prompt
@@ -366,9 +381,10 @@ extension OpenAISwift {
 @available(macOS 13.0, *)
 public class DataTaskDelegate: NSObject, URLSessionDataDelegate {
     var receivedData = Data()
+    var role: OpenAIChatRole = .assistant
     var receivedString = ""
     var didReceiveUpdate: ((String) -> Void)?
-    var didComplete: ((Data?, URLResponse?, Error?) -> Void)?
+    var didComplete: (((role: OpenAIChatRole, content: String)?, Error?) -> Void)?
 
     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
         receivedData.append(data)
@@ -382,6 +398,13 @@ public class DataTaskDelegate: NSObject, URLSessionDataDelegate {
             do {
                 message.trimPrefix("data:")
                 let res = try JSONDecoder().decode(RealtimeChatUpdate.self, from: Data(message.utf8))
+                if let content = res.choices.first?.delta.role {
+                    if let updatedRole = OpenAIChatRole(rawValue: content) {
+                        self.role = updatedRole
+                    } else {
+                        print("unknown role: \(content)")
+                    }
+                }
                 if let content = res.choices.first?.delta.content {
                     receivedString += content
                 }
@@ -397,10 +420,10 @@ public class DataTaskDelegate: NSObject, URLSessionDataDelegate {
     public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         if let error = error {
             // Handle the error here
-            didComplete?(receivedData, task.response, error)
+            didComplete?(nil, error)
         } else {
             // The task completed successfully
-            didComplete?(receivedData, task.response, nil)
+            didComplete?((role: role, content: receivedString), nil)
         }
     }
 }

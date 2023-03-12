@@ -14,9 +14,26 @@ final class OpenAISwiftTests: XCTestCase {
         let prompt = "Please tell me a story about a friendly duck and a friendly bear"
 
         openAI.realtimeCompletion(with: [OpenAIChatMessage(role: .user, content: prompt)],
-                                  maxTokens: 1000) { update, err in
-            print("\(String(describing: update))")
+                                  maxTokens: 1000) { update in
+            // noop
         } completionHandler: { result in
+            guard
+                case .success(let message) = result
+            else {
+                XCTFail("\(result)")
+                return
+            }
+            XCTAssert(message.lowercased().contains("duck"))
+            expectation.fulfill()
+        }
+        wait(for: [expectation], timeout: Self.Timeout * 2)
+    }
+
+    func testLongConversation() throws {
+        let openAI = OpenAISwift(authToken: Self.Token)
+        let expectation = self.expectation(description: "expectation")
+
+        openAI.sendCompletion(with: "Please tell me a story about a friendly duck and a friendly bear") { result in
             guard
                 case .success(let foo) = result,
                 let choice = foo.choices.first
@@ -24,7 +41,7 @@ final class OpenAISwiftTests: XCTestCase {
                 XCTFail("\(result)")
                 return
             }
-            XCTAssert(choice.message.content.lowercased().contains("duck"))
+            XCTAssert(choice.text.lowercased().contains("duck"))
             expectation.fulfill()
         }
         wait(for: [expectation], timeout: Self.Timeout)
