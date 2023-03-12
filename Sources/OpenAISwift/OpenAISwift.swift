@@ -232,6 +232,56 @@ extension OpenAISwift {
 }
 
 extension OpenAISwift {
+    /// Send a Chat Completion to the OpenAI API
+    /// - Parameters:
+    ///   - messages: The Text Prompt
+    ///   - model: The AI Model to Use. Set to `OpenAIModelType.gpt3(.davinci)` by default which is the most capable model
+    ///   - maxTokens: The limit character for the returned response, defaults to 16 as per the API
+    @available(swift 5.5)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    public func sendCompletion(with messages: [OpenAIChatMessage],
+                               model: CompletionsModel = .gpt35(.stable),
+                               maxTokens: Int = 16,
+                               temperature: Float = 1.0,
+                               stop: [String]? = nil,
+                               user: String? = nil) async throws -> ChatResponse {
+        return try await withCheckedThrowingContinuation { continuation in
+            sendCompletion(with: messages,
+                           model: model,
+                           maxTokens: maxTokens,
+                           temperature: temperature,
+                           stop: stop,
+                           user: user) { result in
+                continuation.resume(with: result)
+            }
+        }
+    }
+
+    /// Send an Image Generation to the OpenAI API
+    /// - Parameters:
+    ///   - prompt: A text description of the desired image(s). The maximum length is 1000 characters.
+    ///   - n: The number of images to generate. Must be between 1 and 10.
+    ///   - model: The AI Model to Use. Set to `OpenAIModelType.gpt3(.davinci)` by default which is the most capable model
+    ///   - maxTokens: The limit character for the returned response, defaults to 16 as per the API
+    @available(swift 5.5)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    public func sendImageGeneration(with prompt: String,
+                                    n: Int = 1,
+                                    size: OpenAIImageSize = .x256,
+                                    responseFormat: OpenAIImageResponesFormat = .url,
+                                    user: String? = nil) async throws -> ImageResponse {
+        let foo = try await withCheckedThrowingContinuation { continuation in
+            sendImageGeneration(with: prompt,
+                                n: n,
+                                size: size,
+                                responseFormat: responseFormat,
+                                user: user) { result in
+                continuation.resume(with: result)
+            }
+        }
+        return foo
+    }
+
     /// Send a Completion to the OpenAI API
     /// - Parameters:
     ///   - prompt: The Text Prompt
@@ -240,7 +290,13 @@ extension OpenAISwift {
     /// - Returns: Returns an OpenAI Data Model
     @available(swift 5.5)
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
-    public func sendCompletion(with prompt: String, model: CompletionsModel = .gpt3(.davinci), maxTokens: Int = 16) async throws -> TextResponse {
+    public func sendCompletion(with prompt: String,
+                               suffix: String? = nil,
+                               model: CompletionsModel = .gpt3(.davinci),
+                               maxTokens: Int = 16,
+                               temperature: Float = 1.0,
+                               stop: [String]? = nil,
+                               user: String? = nil) async throws -> TextResponse {
         return try await withCheckedThrowingContinuation { continuation in
             sendCompletion(with: prompt, model: model, maxTokens: maxTokens) { result in
                 continuation.resume(with: result)
@@ -253,10 +309,12 @@ extension OpenAISwift {
     ///   - instruction: The Instruction For Example: "Fix the spelling mistake"
     ///   - model: The Model to use, the only support model is `text-davinci-edit-001`
     ///   - input: The Input For Example "My nam is Adam"
-    ///   - completionHandler: Returns an OpenAI Data Model
     @available(swift 5.5)
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
-    public func sendEdits(with instruction: String, model: EditsModel = .davinciText, input: String = "", completionHandler: @escaping (Result<TextResponse, OpenAIError>) -> Void) async throws -> TextResponse {
+    public func sendEdits(with instruction: String,
+                          input: String,
+                          model: EditsModel = .davinciText,
+                          temperature: Float = 1.0) async throws -> TextResponse {
         return try await withCheckedThrowingContinuation { continuation in
             sendEdits(with: instruction, input: input, model: model) { result in
                 continuation.resume(with: result)
