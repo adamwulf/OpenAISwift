@@ -281,8 +281,14 @@ extension OpenAISwift {
                                    maxTokens: Int = 16,
                                    temperature: Float = 1.0,
                                    stop: [String]? = nil,
-                                   user: String? = nil) {
-
+                                   user: String? = nil) -> AsyncStream<String> {
+        return AsyncStream<String> { continuation in
+            realtimeCompletion(with: messages, model: model, maxTokens: maxTokens, temperature: temperature, stop: stop, user: user) { update in
+                continuation.yield(update)
+            } completionHandler: { result in
+                continuation.finish()
+            }
+        }
     }
 
 

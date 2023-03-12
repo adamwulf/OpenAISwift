@@ -8,14 +8,32 @@ final class OpenAISwiftTests: XCTestCase {
     /// In Xcode, Edit Scheme -> Run -> Arguments Tab -> Add Environment Variable -> Add your OpenAI API token with a var named "OpenAIToken"
     static let Token = ProcessInfo.processInfo.environment["OpenAIToken"]!
 
+    func testAsyncRealtimeConversation() async throws {
+        let openAI = OpenAISwift(authToken: Self.Token)
+        let prompt = "Please tell me a story about a friendly duck and a friendly bear"
+
+        let stream: AsyncStream<String> = openAI.realtimeCompletion(with: [OpenAIChatMessage(role: .user, content: prompt)], maxTokens: 1000)
+
+        // get the last element of the stream, ignoring all streamed updates
+        guard let message = await stream.reduce(nil, { _, element in element }) else {
+            XCTFail("no message")
+            return
+        }
+        XCTAssert(message.lowercased().contains("duck"))
+    }
+
     func testRealtimeConversation() throws {
         let openAI = OpenAISwift(authToken: Self.Token)
         let expectation = self.expectation(description: "expectation")
         let prompt = "Please tell me a story about a friendly duck and a friendly bear"
+        let start = Date()
+        var end: Date?
 
         openAI.realtimeCompletion(with: [OpenAIChatMessage(role: .user, content: prompt)],
                                   maxTokens: 1000) { update in
-            // noop
+            if end == nil {
+                end = Date()
+            }
         } completionHandler: { result in
             guard
                 case .success(let message) = result
@@ -24,6 +42,28 @@ final class OpenAISwiftTests: XCTestCase {
                 return
             }
             XCTAssert(message.lowercased().contains("duck"))
+            print("content length: \(message.count)")
+            print("start: \(end!.timeIntervalSince1970 - start.timeIntervalSince1970)")
+            expectation.fulfill()
+        }
+        wait(for: [expectation], timeout: Self.Timeout * 2)
+    }
+
+    func testLongChatConversation() throws {
+        let openAI = OpenAISwift(authToken: Self.Token)
+        let expectation = self.expectation(description: "expectation")
+        let prompt = "Please tell me a story about a friendly duck and a friendly bear"
+
+        openAI.sendCompletion(with: [OpenAIChatMessage(role: .user, content: prompt)], maxTokens: 1000) { result in
+            guard
+                case .success(let foo) = result,
+                let choice = foo.choices.first
+            else {
+                XCTFail("\(result)")
+                return
+            }
+            print("content length: \(choice.message.content.count)")
+            XCTAssert(choice.message.content.lowercased().contains("duck"))
             expectation.fulfill()
         }
         wait(for: [expectation], timeout: Self.Timeout * 2)
@@ -41,6 +81,7 @@ final class OpenAISwiftTests: XCTestCase {
                 XCTFail("\(result)")
                 return
             }
+            print("content length: \(choice.text.count)")
             XCTAssert(choice.text.lowercased().contains("duck"))
             expectation.fulfill()
         }
@@ -62,7 +103,7 @@ final class OpenAISwiftTests: XCTestCase {
             XCTAssert(choice.text.lowercased().contains("hi"))
             expectation.fulfill()
         }
-        wait(for: [expectation], timeout: Self.Timeout)
+        wait(for: [expectation], timeout: Self.Timeout * 2)
     }
 
     func testConversationStops() throws {
