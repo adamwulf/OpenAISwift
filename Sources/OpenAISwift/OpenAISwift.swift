@@ -24,6 +24,7 @@ public enum OpenAIImageResponesFormat: String {
 
 public class OpenAISwift {
     fileprivate(set) var token: String?
+    public var baseURL: String = "https://api.openai.com"
 
     public init(authToken: String) {
         self.token = authToken
@@ -190,9 +191,8 @@ extension OpenAISwift {
     }
     
     private func prepareRequest<BodyType: Encodable>(_ endpoint: Endpoint, body: BodyType) -> URLRequest {
-        var urlComponents = URLComponents(url: URL(string: endpoint.baseURL())!, resolvingAgainstBaseURL: true)
-        urlComponents?.path = endpoint.path
-        var request = URLRequest(url: urlComponents!.url!)
+        let apiURL = URL(string: baseURL + endpoint.path)!
+        var request = URLRequest(url: apiURL)
         request.httpMethod = endpoint.method
         
         if let token = self.token {
@@ -225,6 +225,7 @@ extension OpenAISwift {
                     completionHandler(.failure(.serverError(type: type, error: message)))
                 }
             } else {
+                print("error: \(String(data: success, encoding: .utf8))")
                 completionHandler(.failure(.decodingError(error: error)))
             }
         }

@@ -34,11 +34,4 @@ extension Endpoint {
             return "POST"
         }
     }
-    
-    func baseURL() -> String {
-        switch self {
-        case .chat, .completions, .embeddings, .edits, .imageGenerations:
-            return "https://api.openai.com"
-        }
-    }
 }
