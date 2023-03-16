@@ -6,7 +6,7 @@ import FoundationXML
 
 public enum OpenAIError: Error {
     case genericError(error: Error)
-    case decodingError(error: Error)
+    case decodingError(error: Error, data: Data)
     case serverError(type: String, error: String)
     case invalidContentLength(error: String)
 }
@@ -25,6 +25,7 @@ public enum OpenAIImageResponesFormat: String {
 public class OpenAISwift {
     fileprivate(set) var token: String?
     public var baseURL: String = "https://api.openai.com"
+    public var additionalHeaders: [String: String] = [:]
 
     public init(authToken: String) {
         self.token = authToken
@@ -178,7 +179,11 @@ extension OpenAISwift {
     }
 
     private func makeRequest(request: URLRequest, completionHandler: @escaping (Result<Data, Error>) -> Void) {
+        var request = request
         let session = URLSession.shared
+        for (header, value) in additionalHeaders {
+            request.setValue(value, forHTTPHeaderField: header)
+        }
         let task = session.dataTask(with: request) { (data, response, error) in
             if let error = error {
                 completionHandler(.failure(error))
@@ -225,8 +230,7 @@ extension OpenAISwift {
                     completionHandler(.failure(.serverError(type: type, error: message)))
                 }
             } else {
-                print("error: \(String(data: success, encoding: .utf8))")
-                completionHandler(.failure(.decodingError(error: error)))
+                completionHandler(.failure(.decodingError(error: error, data: success)))
             }
         }
     }
